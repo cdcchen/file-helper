@@ -32,3 +32,6 @@ phpunit.phar
 
 # node modules
 /node_modules
+
+# tests
+tests/
