@@ -24,7 +24,7 @@
     },
     "autoload": {
         "psr-4": {
-            "cdcchen\\helpers\\file\\": "src/"
+            "cdcchen\\filesystem\\": "src/"
         }
     },
     "extra": {

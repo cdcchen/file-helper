@@ -6,7 +6,7 @@
  * Time: 上午11:35
  */
 
-namespace cdcchen\helpers\file;
+namespace cdcchen\filesystem;
 
 
 class SimplePath

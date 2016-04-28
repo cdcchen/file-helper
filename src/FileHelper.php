@@ -6,7 +6,7 @@
  * Time: 12:29
  */
 
-namespace cdcchen\helpers\file;
+namespace cdcchen\filesystem;
 
 
 class FileHelper
