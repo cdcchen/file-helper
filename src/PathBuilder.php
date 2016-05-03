@@ -9,7 +9,7 @@
 namespace cdcchen\filesystem;
 
 
-class SimplePath
+class PathBuilder
 {
     protected $basePath;
     protected $pathName;
