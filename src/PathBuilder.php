@@ -40,34 +40,31 @@ class PathBuilder
 
     public function buildPathName($pathFormat, $prefix = null, $suffix = null)
     {
-        $places = self::placeHolders();
-        $pathName = str_replace(array_keys($places), array_values($places), trim($pathFormat, "/\\"));
+        $pathName = strtr($pathFormat, self::placeHolders());
 
-        $prefix = rtrim($prefix, "/\\");
         if ($prefix) {
             $pathName = $prefix . DIRECTORY_SEPARATOR . $pathName;
         }
 
-        $suffix = ltrim($suffix, "/\\");
         if ($suffix) {
             $pathName .= DIRECTORY_SEPARATOR . $suffix;
         }
 
-        $this->pathName = $pathName;
+        $this->pathName = static::normalizePath($pathName);
         return $this;
     }
 
     public function createPath($mode = 0755, $recursive = true, $context = null)
     {
-        $basePath = (stripos($this->pathName, '/') === 0) ? '' : (rtrim($this->basePath, '/') . DIRECTORY_SEPARATOR);
-        $path = $basePath . $this->pathName;
+        $basePath = (stripos($this->pathName, '/') === 0) ? '' : $this->basePath;
+        $path = $basePath . DIRECTORY_SEPARATOR . $this->pathName;
+        $path = static::normalizePath($path);
         return $context ? mkdir($path, $mode, $recursive, $context) : mkdir($path, $mode, $recursive);
     }
 
     public function buildFileName($fileFormat, $extensionName = '', $includeDot = false)
     {
-        $places = self::placeHolders();
-        $fileName = str_replace(array_keys($places), array_values($places), $fileFormat);
+        $fileName = strtr($fileFormat, self::placeHolders());
         if ($extensionName) {
             $fileName .= ($includeDot ? '' : '.') . $extensionName;
         }
@@ -78,16 +75,62 @@ class PathBuilder
 
     public function getFilePath()
     {
-        $basePath = (stripos($this->pathName, '/') === 0) ? '' : (rtrim($this->basePath, '/') . DIRECTORY_SEPARATOR);
-        return $basePath . $this->pathName . DIRECTORY_SEPARATOR . $this->fileName;
+        $basePath = (stripos($this->pathName, '/') === 0) ? '' : $this->basePath;
+        $path = $basePath . DIRECTORY_SEPARATOR . $this->pathName . DIRECTORY_SEPARATOR . $this->fileName;
+        return static::normalizePath($path);
     }
 
     public function getFileUrl($baseUrl = null)
     {
-        $baseUrl = $baseUrl ? rtrim($baseUrl, '/') . '/' : '';
-        $basePath = (stripos($this->pathName, '/') === 0) ? '' : (rtrim($this->basePath, '/') . DIRECTORY_SEPARATOR);
-        $path = ltrim(str_replace("\\", '/', $basePath . $this->pathName), '/') . '/';
+        $baseUrl = $baseUrl ? rtrim($baseUrl, '/') : '';
+        $basePath = (stripos($this->pathName, '/') === 0) ? '' : $this->basePath;
+        $path = '/' . $basePath . '/' . $this->pathName . '/';
 
-        return $baseUrl . $path . $this->fileName;
+        return $baseUrl . static::normalizePath($path, '/') . '/' . $this->fileName;
+    }
+
+    public function getPathname()
+    {
+        return dirname($this->getFilePath());
+    }
+
+    public function getFilename()
+    {
+        return basename($this->getFilePath());
+    }
+
+
+    /**
+     * Normalizes a file/directory path.
+     * The normalization does the following work:
+     *
+     * - Convert all directory separators into `DIRECTORY_SEPARATOR` (e.g. "\a/b\c" becomes "/a/b/c")
+     * - Remove trailing directory separators (e.g. "/a/b/c/" becomes "/a/b/c")
+     * - Turn multiple consecutive slashes into a single one (e.g. "/a///b/c" becomes "/a/b/c")
+     * - Remove ".." and "." based on their meanings (e.g. "/a/./b/../c" becomes "/a/c")
+     *
+     * @param string $path the file/directory path to be normalized
+     * @param string $ds the directory separator to be used in the normalized result. Defaults to `DIRECTORY_SEPARATOR`.
+     * @return string the normalized file/directory path
+     */
+    public static function normalizePath($path, $ds = DIRECTORY_SEPARATOR)
+    {
+        $path = rtrim(strtr($path, '/\\', $ds . $ds), $ds);
+        if (strpos($ds . $path, "{$ds}.") === false && strpos($path, "{$ds}{$ds}") === false) {
+            return $path;
+        }
+        // the path may contain ".", ".." or double slashes, need to clean them up
+        $parts = [];
+        foreach (explode($ds, $path) as $part) {
+            if ($part === '..' && !empty($parts) && end($parts) !== '..') {
+                array_pop($parts);
+            } elseif ($part === '.' || $part === '' && !empty($parts)) {
+                continue;
+            } else {
+                $parts[] = $part;
+            }
+        }
+        $path = implode($ds, $parts);
+        return $path === '' ? '.' : $path;
     }
 }
