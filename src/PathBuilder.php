@@ -9,12 +9,29 @@
 namespace cdcchen\filesystem;
 
 
+/**
+ * Class PathBuilder
+ * @package cdcchen\filesystem
+ */
 class PathBuilder
 {
+    /**
+     * @var string
+     */
     protected $basePath;
+    /**
+     * @var string
+     */
     protected $pathName;
+    /**
+     * @var string
+     */
     protected $fileName;
 
+    /**
+     * @param null|string $key
+     * @return array|mixed
+     */
     protected static function placeHolders($key = null)
     {
         $places = [
@@ -33,11 +50,21 @@ class PathBuilder
         return empty($key) ? $places : $places[$key];
     }
 
+    /**
+     * PathBuilder constructor.
+     * @param string $basePath
+     */
     public function __construct($basePath = '')
     {
         $this->basePath = $basePath;
     }
 
+    /**
+     * @param string $pathFormat
+     * @param null|string $prefix
+     * @param null|string $suffix
+     * @return $this
+     */
     public function buildPathName($pathFormat, $prefix = null, $suffix = null)
     {
         $pathName = strtr($pathFormat, self::placeHolders());
@@ -54,6 +81,12 @@ class PathBuilder
         return $this;
     }
 
+    /**
+     * @param int $mode
+     * @param bool $recursive
+     * @param null $context
+     * @return mixed
+     */
     public function createPath($mode = 0755, $recursive = true, $context = null)
     {
         $basePath = (stripos($this->pathName, '/') === 0) ? '' : $this->basePath;
@@ -62,6 +95,12 @@ class PathBuilder
         return $context ? mkdir($path, $mode, $recursive, $context) : mkdir($path, $mode, $recursive);
     }
 
+    /**
+     * @param string $fileFormat
+     * @param string $extensionName
+     * @param bool $includeDot
+     * @return $this
+     */
     public function buildFileName($fileFormat, $extensionName = '', $includeDot = false)
     {
         $fileName = strtr($fileFormat, self::placeHolders());
@@ -73,6 +112,10 @@ class PathBuilder
         return $this;
     }
 
+    /**
+     * @param string $ds
+     * @return string
+     */
     public function getFilePath($ds = DIRECTORY_SEPARATOR)
     {
         $basePath = (stripos($this->pathName, '/') === 0) ? '' : $this->basePath;
@@ -80,6 +123,10 @@ class PathBuilder
         return static::normalizePath($path, $ds);
     }
 
+    /**
+     * @param null|string $baseUrl
+     * @return string
+     */
     public function getFileUrl($baseUrl = null)
     {
         $baseUrl = $baseUrl ? rtrim($baseUrl, '/') : '';
@@ -89,11 +136,17 @@ class PathBuilder
         return $baseUrl . static::normalizePath($path, '/') . '/' . $this->fileName;
     }
 
+    /**
+     * @return string
+     */
     public function getPathname()
     {
         return dirname($this->getFilePath());
     }
 
+    /**
+     * @return string
+     */
     public function getFilename()
     {
         return basename($this->getFilePath());
