@@ -73,11 +73,11 @@ class PathBuilder
         return $this;
     }
 
-    public function getFilePath()
+    public function getFilePath($ds = DIRECTORY_SEPARATOR)
     {
         $basePath = (stripos($this->pathName, '/') === 0) ? '' : $this->basePath;
-        $path = $basePath . DIRECTORY_SEPARATOR . $this->pathName . DIRECTORY_SEPARATOR . $this->fileName;
-        return static::normalizePath($path);
+        $path = $basePath . $ds . $this->pathName . $ds . $this->fileName;
+        return static::normalizePath($path, $ds);
     }
 
     public function getFileUrl($baseUrl = null)
