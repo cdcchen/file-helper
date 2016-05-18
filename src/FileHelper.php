@@ -74,6 +74,20 @@ class FileHelper
     }
 
     /**
+     * Determines the extensions by given MIME type.
+     * This method will use a local map between extension names and MIME types.
+     * @param string $mimeType file MIME type.
+     * @param string $magicFile the path (or alias) of the file that contains all available MIME type information.
+     * If this is not set, the file specified by [[mimeMagicFile]] will be used.
+     * @return array the extensions corresponding to the specified MIME type
+     */
+    public static function getExtensionsByMimeType($mimeType, $magicFile = null)
+    {
+        $mimeTypes = static::loadMimeTypes($magicFile);
+        return array_keys($mimeTypes, mb_strtolower($mimeType, 'UTF-8'), true);
+    }
+
+    /**
      * Loads MIME types from the specified file.
      * @param string $magicFile the path (or alias) of the file that contains all available MIME type information.
      * If this is not set, the file specified by [[mimeMagicFile]] will be used.
